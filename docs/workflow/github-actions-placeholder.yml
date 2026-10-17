@@ -1,0 +1,11 @@
+# PREPARATION PLACEHOLDER — not an active GitHub Actions workflow.
+# Move to .github/workflows/ only after the project owner approves automation scope.
+#
+# Future non-approving checks may validate:
+# - Q-C/evidence CSV structure and required identifiers
+# - links and dependency references
+# - evidence manifest hashes (integrity only, not technical correctness)
+# - change-impact notifications for requirements, decisions, and gate artifacts
+#
+# Human gate-owner and stakeholder approval must remain an explicit recorded action.
+# A green check must never set G1/G2 to PASS or authorize schematic entry.

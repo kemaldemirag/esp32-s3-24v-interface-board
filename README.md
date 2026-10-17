@@ -12,3 +12,5 @@ Amaç, JOB-01 için 24 V korumalı giriş, 5 V ve 3.3 V güç ağacı, ESP32-S3 
 - G1 BLOCKED olduğu için tasarım başlatılmamıştır.
 
 Gelecekteki çalışma G2–G4 kapılarına, requirements altındaki izlenebilirliğe ve kaynak paket doğrulamasına bağlıdır.
+
+G1 kapanış kontrol listesi, G1→G2 geçiş planı ve kanıt/karar şablonları için [`docs/workflow/`](docs/workflow/README.md) dizinine bakın. Bu belgeler G1'in mevcut `BLOCKED` durumunu değiştirmez.
