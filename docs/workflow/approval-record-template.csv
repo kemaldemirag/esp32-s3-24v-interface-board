@@ -1,0 +1,2 @@
+"approval_id","gate","scope","decision","artifact_revision_or_hash","evidence_snapshot","owner_name_role","approver_name_role","stakeholder_or_customer_signoff","conditions_or_waivers","approved_at","review_due_or_trigger","record_link"
+"APR-G1-TBD","G1","JOB-01 / TBD","BLOCKED","","","TBD","","PENDING","No approval implied by this template","","",""
