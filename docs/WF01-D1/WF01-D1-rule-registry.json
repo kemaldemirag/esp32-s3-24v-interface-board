@@ -1,0 +1,506 @@
+{
+  "registry_id": "WF01-D1-RULE-REGISTRY",
+  "registry_version": "1.0.0-draft",
+  "product": "ESP32-S3 Interface Architecture Decision Workbench",
+  "stage": "WF01-D1",
+  "condition_language": "wf01-expression-v1",
+  "claim_scope": "ARCHITECTURE_CONTRACT_CHECK_ONLY",
+  "hardware_validation_claim": false,
+  "status_precedence": ["FAIL", "BLOCKED", "UNKNOWN", "PASS", "NOT_RUN"],
+  "rules": [
+    {
+      "rule_id": "RULE-GPIO-001",
+      "description": "When the ESP32-S3 internal USB PHY is used, reserve GPIO19 for USB D- and GPIO20 for USB D+ and prevent unrelated assignments from claiming either pin.",
+      "inputs": [
+        "/usb/role",
+        "/usb/phy",
+        "/usb/data_minus_gpio",
+        "/usb/data_plus_gpio",
+        "/gpio/reservations",
+        "/gpio/assignments",
+        "/evidence_catalog"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "applicable_when": {
+          "all": [
+            {"path_state": ["/usb/phy", "KNOWN"]},
+            {"path_in": ["/usb/phy/value", ["INTERNAL"]]},
+            {"path_in": ["/usb/role/value", ["HOST", "DEVICE", "OTG"]]}
+          ]
+        },
+        "pass_when": {
+          "all": [
+            {"path_equals": ["/usb/data_minus_gpio/value", 19]},
+            {"path_equals": ["/usb/data_plus_gpio/value", 20]},
+            {"exclusive_reserved_for": [19, "USB_D_MINUS"]},
+            {"exclusive_reserved_for": [20, "USB_D_PLUS"]}
+          ]
+        },
+        "fail_when": {
+          "any": [
+            {"known_path_not_equals": ["/usb/data_minus_gpio/value", 19]},
+            {"known_path_not_equals": ["/usb/data_plus_gpio/value", 20]},
+            {"conflicting_gpio_assignment": [19, "USB_D_MINUS"]},
+            {"conflicting_gpio_assignment": [20, "USB_D_PLUS"]}
+          ]
+        },
+        "missing_data_policy": "UNKNOWN if role or PHY applicability is unknown; BLOCKED when internal USB is known but reservation or assignment records are incomplete."
+      },
+      "expected_result": {
+        "PASS": "Internal USB uses evidenced GPIO19 D- and GPIO20 D+ reservations with no unrelated owner.",
+        "FAIL": "A known data pin differs from 19/20 or either pin has a conflicting known assignment.",
+        "UNKNOWN": "USB role or PHY applicability is unknown.",
+        "BLOCKED": "Internal USB is applicable but pin or reservation evidence is incomplete or conflicting.",
+        "NOT_RUN": "The evaluator was not invoked or internal USB is not applicable."
+      },
+      "evidence_refs": [
+        "CLAUDE-03#C03-004",
+        "CLAUDE-11#C11-012",
+        "CLAUDE-11a#GPIO19",
+        "CLAUDE-11a#GPIO20",
+        "IC-04"
+      ],
+      "exceptions": [
+        {
+          "exception_id": "EX-GPIO-001-EXT-PHY",
+          "condition": "A reviewed external-PHY design is selected and its alternate pin mapping is fully evidenced.",
+          "effect": "Internal 19/20 mapping is not applicable; the external-PHY mapping requires a separate rule set.",
+          "automatic": false
+        }
+      ],
+      "test_ids": ["TC-GPIO-001-POS-01", "TC-GPIO-001-NEG-01", "TC-GPIO-001-MISS-01"]
+    },
+    {
+      "rule_id": "RULE-GPIO-002",
+      "description": "For an evidenced ESP32-S3-WROOM-1-N8 module profile, GPIO45 must not be driven high or pulled high during the boot and strapping window.",
+      "inputs": [
+        "/target/mcu_family",
+        "/target/module_variant",
+        "/target/module_profile_ref",
+        "/gpio/boot_behaviors",
+        "/gpio/assignments",
+        "/evidence_catalog"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "applicable_when": {
+          "all": [
+            {"path_equals": ["/target/mcu_family/value", "ESP32-S3"]},
+            {"path_matches": ["/target/module_variant/value", "(^|-)N8($|-)" ]}
+          ]
+        },
+        "pass_when": {
+          "all": [
+            {"gpio_boot_record_known": 45},
+            {"gpio_boot_drive_not_in": [45, ["HIGH"]]},
+            {"gpio_external_bias_not_in": [45, ["PULL_UP", "FIXED_HIGH"]]}
+          ]
+        },
+        "fail_when": {
+          "any": [
+            {"gpio_boot_drive_in": [45, ["HIGH"]]},
+            {"gpio_external_bias_in": [45, ["PULL_UP", "FIXED_HIGH"]]}
+          ]
+        },
+        "missing_data_policy": "UNKNOWN when the module profile is unknown; BLOCKED when N8 is known but GPIO45 boot behavior is not evidenced."
+      },
+      "expected_result": {
+        "PASS": "The N8 GPIO45 record is known and contains no boot-high drive or high bias.",
+        "FAIL": "A known GPIO45 boot drive or external bias pulls the pin high in the strapping window.",
+        "UNKNOWN": "The module variant or applicability is unknown.",
+        "BLOCKED": "N8 applies but the GPIO45 boot-state record or decisive evidence is missing.",
+        "NOT_RUN": "The evaluator was not invoked or the evidenced module profile is outside this initial rule's scope."
+      },
+      "evidence_refs": [
+        "CLAUDE-11#C11-005",
+        "CLAUDE-11a#GPIO45"
+      ],
+      "exceptions": [],
+      "test_ids": ["TC-GPIO-002-POS-01", "TC-GPIO-002-NEG-01", "TC-GPIO-002-MISS-01"]
+    },
+    {
+      "rule_id": "RULE-GPIO-003",
+      "description": "GPIO3 must have an evidenced, deterministic boot and strapping state; it must not be left high-impedance or without a defined external bias where the selected policy depends on it.",
+      "inputs": [
+        "/target/mcu_family",
+        "/target/module_profile_ref",
+        "/debug/jtag_policy",
+        "/gpio/boot_behaviors",
+        "/gpio/assignments",
+        "/evidence_catalog"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "applicable_when": {
+          "path_equals": ["/target/mcu_family/value", "ESP32-S3"]
+        },
+        "pass_when": {
+          "all": [
+            {"gpio_boot_record_known": 3},
+            {"gpio_boot_drive_not_in": [3, ["HIGH_Z", "UNCONTROLLED"]]},
+            {"gpio_external_bias_not_in": [3, ["NONE", "FLOATING", "UNCONTROLLED"]]}
+          ]
+        },
+        "fail_when": {
+          "any": [
+            {"gpio_boot_drive_in": [3, ["HIGH_Z", "UNCONTROLLED"]]},
+            {"gpio_external_bias_in": [3, ["NONE", "FLOATING", "UNCONTROLLED"]]}
+          ]
+        },
+        "missing_data_policy": "UNKNOWN when ESP32-S3 applicability is unknown; BLOCKED when GPIO3 is applicable but the boot drive, external bias, or strap policy is missing."
+      },
+      "expected_result": {
+        "PASS": "GPIO3 has a known, deterministic boot-state record and is not high-impedance or floating.",
+        "FAIL": "GPIO3 is known to be high-impedance, uncontrolled, floating, or without the required bias.",
+        "UNKNOWN": "The target or GPIO3 applicability is unknown.",
+        "BLOCKED": "GPIO3 applies but its boot-state or strap-policy evidence is incomplete.",
+        "NOT_RUN": "The evaluator was not invoked or the target is outside rule scope."
+      },
+      "evidence_refs": [
+        "CLAUDE-11#C11-006",
+        "CLAUDE-11a#GPIO3"
+      ],
+      "exceptions": [
+        {
+          "exception_id": "EX-GPIO-003-REVIEWED-STRAP",
+          "condition": "A different deterministic strap network and its consequences are explicitly reviewed and evidenced.",
+          "effect": "The reviewed fixed state may replace the nominal policy; high-impedance remains disallowed.",
+          "automatic": false
+        }
+      ],
+      "test_ids": ["TC-GPIO-003-POS-01", "TC-GPIO-003-NEG-01", "TC-GPIO-003-MISS-01"]
+    },
+    {
+      "rule_id": "RULE-USB-001",
+      "description": "Detect concurrent ownership of the ESP32-S3 internal USB PHY by USB Host/OTG and USB-Serial/JTAG.",
+      "inputs": [
+        "/usb/role",
+        "/usb/phy",
+        "/usb/simultaneous_usb_serial_jtag_required",
+        "/debug/programming_log_transports",
+        "/debug/live_debug_while_usb_host",
+        "/evidence_catalog"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "applicable_when": {
+          "all": [
+            {"path_equals": ["/usb/phy/value", "INTERNAL"]},
+            {"path_in": ["/usb/role/value", ["HOST", "OTG"]]}
+          ]
+        },
+        "pass_when": {
+          "all": [
+            {"path_equals": ["/usb/simultaneous_usb_serial_jtag_required/value", false]},
+            {"not_concurrent_transport": "USB_SERIAL_JTAG"}
+          ]
+        },
+        "fail_when": {
+          "any": [
+            {"path_equals": ["/usb/simultaneous_usb_serial_jtag_required/value", true]},
+            {
+              "all": [
+                {"array_contains": ["/debug/programming_log_transports", "USB_SERIAL_JTAG"]},
+                {"path_equals": ["/debug/live_debug_while_usb_host/value", true]}
+              ]
+            }
+          ]
+        },
+        "missing_data_policy": "UNKNOWN when role or PHY applicability is unknown; BLOCKED when internal Host/OTG is known but concurrency policy is unresolved."
+      },
+      "expected_result": {
+        "PASS": "Internal Host/OTG and USB-Serial/JTAG are explicitly non-concurrent.",
+        "FAIL": "Both consumers are explicitly requested concurrently on the internal PHY.",
+        "UNKNOWN": "USB role or PHY applicability is unknown.",
+        "BLOCKED": "Internal Host/OTG applies but the concurrency or debug policy is unresolved.",
+        "NOT_RUN": "The evaluator was not invoked or this internal-PHY ownership check is not applicable."
+      },
+      "evidence_refs": [
+        "CLAUDE-03#C03-003",
+        "CLAUDE-03#C03-005",
+        "CLAUDE-03#C03-010",
+        "CLAUDE-11#C11-012",
+        "CLAUDE-11#C11-013",
+        "CLAUDE-11#C11-014"
+      ],
+      "exceptions": [
+        {
+          "exception_id": "EX-USB-001-EXT-PHY",
+          "condition": "A reviewed external USB PHY and its complete GPIO/resource budget are selected.",
+          "effect": "Internal-PHY ownership conflict does not apply; external-PHY rules and evidence are required.",
+          "automatic": false
+        }
+      ],
+      "test_ids": ["TC-USB-001-POS-01", "TC-USB-001-NEG-01", "TC-USB-001-MISS-01"]
+    },
+    {
+      "rule_id": "RULE-USB-002",
+      "description": "When internal USB Host/OTG removes USB-Serial/JTAG as a concurrent recovery path, preserve an evidenced UART0 recovery and log path on reserved GPIO43/GPIO44.",
+      "inputs": [
+        "/usb/role",
+        "/usb/phy",
+        "/debug/programming_log_transports",
+        "/debug/uart0_controller_id",
+        "/debug/uart0_tx_gpio",
+        "/debug/uart0_rx_gpio",
+        "/debug/uart0_recovery_required",
+        "/gpio/reservations",
+        "/gpio/assignments",
+        "/evidence_catalog"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "applicable_when": {
+          "all": [
+            {"path_equals": ["/usb/phy/value", "INTERNAL"]},
+            {"path_in": ["/usb/role/value", ["HOST", "OTG"]]}
+          ]
+        },
+        "pass_when": {
+          "all": [
+            {"path_equals": ["/debug/uart0_recovery_required/value", true]},
+            {"array_contains": ["/debug/programming_log_transports", "UART0"]},
+            {"path_equals": ["/debug/uart0_tx_gpio/value", 43]},
+            {"path_equals": ["/debug/uart0_rx_gpio/value", 44]},
+            {"exclusive_reserved_for": [43, "UART0_TX"]},
+            {"exclusive_reserved_for": [44, "UART0_RX"]}
+          ]
+        },
+        "fail_when": {
+          "any": [
+            {"path_equals": ["/debug/uart0_recovery_required/value", false]},
+            {"known_array_excludes": ["/debug/programming_log_transports", "UART0"]},
+            {"known_path_not_equals": ["/debug/uart0_tx_gpio/value", 43]},
+            {"known_path_not_equals": ["/debug/uart0_rx_gpio/value", 44]},
+            {"conflicting_gpio_assignment": [43, "UART0_TX"]},
+            {"conflicting_gpio_assignment": [44, "UART0_RX"]}
+          ]
+        },
+        "missing_data_policy": "UNKNOWN when USB applicability is unknown; BLOCKED when internal Host/OTG is known but the recovery policy, pins, or reservations are incomplete."
+      },
+      "expected_result": {
+        "PASS": "UART0 is an explicit recovery transport and GPIO43/44 are correctly and exclusively reserved.",
+        "FAIL": "A known configuration omits UART0 recovery, uses different known pins, or conflicts on GPIO43/44.",
+        "UNKNOWN": "USB role or PHY applicability is unknown.",
+        "BLOCKED": "Internal Host/OTG applies but recovery-path data or evidence is incomplete.",
+        "NOT_RUN": "The evaluator was not invoked or the internal Host/OTG recovery rule is not applicable."
+      },
+      "evidence_refs": [
+        "CLAUDE-03#C03-010",
+        "CLAUDE-11#C11-014",
+        "CLAUDE-11#C11-015",
+        "CLAUDE-11a#GPIO43",
+        "CLAUDE-11a#GPIO44",
+        "REQ-003-I2",
+        "IC-06"
+      ],
+      "exceptions": [
+        {
+          "exception_id": "EX-USB-002-ALT-RECOVERY",
+          "condition": "A separately reviewed and evidenced production/recovery path replaces UART0.",
+          "effect": "Requires a new versioned registry decision; it is not accepted automatically by this rule.",
+          "automatic": false
+        }
+      ],
+      "test_ids": ["TC-USB-002-POS-01", "TC-USB-002-NEG-01", "TC-USB-002-MISS-01"]
+    },
+    {
+      "rule_id": "RULE-SERIAL-001",
+      "description": "Compare required independent TX streams with evidenced native UART capacity plus only validated, known alternative serializer capacity; research-only mechanisms do not count toward PASS.",
+      "inputs": [
+        "/serial/topology",
+        "/serial/independent_tx_streams",
+        "/serial/native_uart_total",
+        "/serial/reserved_uart_controllers",
+        "/serial/alternative_serializer_resources",
+        "/debug/uart0_controller_id",
+        "/evidence_catalog"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "definitions": {
+          "required_capacity": {"path": "/serial/independent_tx_streams/value"},
+          "native_available": {
+            "subtract": [
+              {"path": "/serial/native_uart_total/value"},
+              {"unique_count": "/serial/reserved_uart_controllers"}
+            ]
+          },
+          "validated_alternative_capacity": {
+            "sum_where": [
+              "/serial/alternative_serializer_resources",
+              {
+                "all": [
+                  {"item_equals": ["/lifecycle", "VALIDATED"]},
+                  {"item_path_state": ["/independent_tx_capacity", "KNOWN"]}
+                ]
+              },
+              "/independent_tx_capacity/value"
+            ]
+          },
+          "verified_capacity": {
+            "sum": ["native_available", "validated_alternative_capacity"]
+          }
+        },
+        "applicable_when": {
+          "path_state": ["/serial/topology", "KNOWN"]
+        },
+        "pass_when": {
+          "greater_than_or_equal": ["verified_capacity", "required_capacity"]
+        },
+        "fail_when": {
+          "all": [
+            {"all_capacity_inputs_known": true},
+            {"less_than": ["verified_capacity", "required_capacity"]}
+          ]
+        },
+        "missing_data_policy": "BLOCKED when independent demand, native inventory, controller reservations, or claimed alternative capacity is unresolved. RMT and software-UART entries marked RESEARCH_ONLY are excluded."
+      },
+      "expected_result": {
+        "PASS": "Verified independent serializer capacity is greater than or equal to the evidenced demand.",
+        "FAIL": "All decisive capacities are known and verified capacity is below the known independent-stream demand.",
+        "UNKNOWN": "Serial topology applicability is unknown.",
+        "BLOCKED": "The capacity comparison is applicable but demand, reservations, or claimed capacity is unresolved or only research-level.",
+        "NOT_RUN": "The evaluator was not invoked or the topology is not an independent-stream topology."
+      },
+      "evidence_refs": [
+        "CLAUDE-03#C03-020",
+        "CLAUDE-03#C03-021",
+        "REQ-004-C",
+        "REQ-004-I",
+        "CF-09"
+      ],
+      "exceptions": [
+        {
+          "exception_id": "EX-SERIAL-001-MIRRORED",
+          "condition": "The customer evidences that TTL and RS-232 outputs are mirrored copies rather than independent streams.",
+          "effect": "Independent-stream demand is recalculated from the accepted topology; no capacity is invented.",
+          "automatic": false
+        }
+      ],
+      "test_ids": ["TC-SERIAL-001-POS-01", "TC-SERIAL-001-NEG-01", "TC-SERIAL-001-MISS-01"]
+    },
+    {
+      "rule_id": "RULE-TFT-001",
+      "description": "A present or future-populated TFT connector cannot pass architecture closure until its interface, required signals, and dedicated GPIO demand are known and mutually consistent.",
+      "inputs": [
+        "/tft/provisioning",
+        "/tft/interface",
+        "/tft/signals",
+        "/tft/dedicated_gpio_count",
+        "/tft/touch_required",
+        "/tft/psram_required",
+        "/tft/decision_ref",
+        "/gpio/reservations",
+        "/gpio/assignments",
+        "/evidence_catalog"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "applicable_when": {
+          "path_in": ["/tft/provisioning/value", ["PRESENT", "DNP_FUTURE"]]
+        },
+        "pass_when": {
+          "all": [
+            {"path_state": ["/tft/interface", "KNOWN"]},
+            {"path_state": ["/tft/dedicated_gpio_count", "KNOWN"]},
+            {"path_state": ["/tft/decision_ref", "KNOWN"]},
+            {"required_tft_signals_known": true},
+            {"unique_required_tft_signal_count_equals": "/tft/dedicated_gpio_count/value"},
+            {"tft_gpio_assignments_conflict_free": true}
+          ]
+        },
+        "fail_when": {
+          "any": [
+            {"known_tft_signal_count_mismatch": true},
+            {"known_tft_gpio_conflict": true},
+            {"known_tft_interface_signal_contradiction": true}
+          ]
+        },
+        "missing_data_policy": "UNKNOWN when provisioning itself is unknown; BLOCKED when PRESENT or DNP_FUTURE applies but Q-C11, interface, signal set, or pin demand is unknown."
+      },
+      "expected_result": {
+        "PASS": "TFT interface, signal set, dedicated pin count, decision reference, and assignments are all known and consistent.",
+        "FAIL": "Known TFT data contradicts itself or conflicts with the known GPIO allocation.",
+        "UNKNOWN": "Whether a TFT connector is required is unknown.",
+        "BLOCKED": "A TFT is present or planned, but Q-C11, interface, signal set, or pin demand is unresolved.",
+        "NOT_RUN": "The evaluator was not invoked or provisioning is explicitly and evidentially NONE."
+      },
+      "evidence_refs": [
+        "PROP-02",
+        "IC-12",
+        "Q-C11",
+        "WF01-GITHUB#G06",
+        "WF01-GITHUB#G07",
+        "WF01-GITHUB#G08",
+        "WF01-GITHUB#G09"
+      ],
+      "exceptions": [
+        {
+          "exception_id": "EX-TFT-001-NONE",
+          "condition": "Provisioning is explicitly NONE with a reviewed decision reference.",
+          "effect": "The rule is not applicable and returns NOT_RUN, not PASS.",
+          "automatic": true
+        }
+      ],
+      "test_ids": ["TC-TFT-001-POS-01", "TC-TFT-001-NEG-01", "TC-TFT-001-MISS-01"]
+    },
+    {
+      "rule_id": "RULE-EVIDENCE-001",
+      "description": "A candidate PASS is allowed only when every decisive reference resolves to policy-sufficient evidence with acceptable integrity; missing or insufficient evidence is never treated as PASS.",
+      "inputs": [
+        "/evidence_catalog",
+        "/evaluation_policy/pass_scope",
+        "$candidate_result/rule_id",
+        "$candidate_result/status",
+        "$candidate_result/evidence_used"
+      ],
+      "condition": {
+        "language": "wf01-expression-v1",
+        "applicable_when": {
+          "candidate_result_status_equals": "PASS"
+        },
+        "pass_when": {
+          "all": [
+            {"all_candidate_evidence_refs_resolve": true},
+            {"all_decisive_evidence_integrity_in": ["LOCAL_HASH_VERIFIED"]},
+            {
+              "no_decisive_claim_supported_only_by": [
+                "SECONDARY_SOURCE",
+                "HANDOFF_ONLY",
+                "ASSUMPTION",
+                "UNKNOWN",
+                "CONFLICT"
+              ]
+            },
+            {"derived_evidence_has_resolved_parent_chain": true},
+            {"candidate_pass_scope_equals": "RULE_ONLY"}
+          ]
+        },
+        "fail_when": {
+          "any": [
+            {"candidate_claim_contradicted_by_resolved_evidence": true},
+            {"candidate_pass_scope_not_equals": "RULE_ONLY"}
+          ]
+        },
+        "missing_data_policy": "BLOCKED when any decisive reference is missing, unresolved, hash-unverified, or policy-insufficient. A missing evidence catalog is a configuration-validation FAIL and the evidence rule is NOT_RUN."
+      },
+      "expected_result": {
+        "PASS": "Every decisive reference resolves, integrity is acceptable, evidence class is sufficient for the rule-scoped claim, and derived claims have a traceable parent chain.",
+        "FAIL": "Resolved evidence contradicts the candidate claim or the result attempts to expand PASS beyond RULE_ONLY.",
+        "UNKNOWN": "Evidence applicability cannot be determined even though the catalog is structurally valid.",
+        "BLOCKED": "A decisive reference is missing, unresolved, integrity-unverified, or supported only by insufficient classes.",
+        "NOT_RUN": "No candidate PASS was produced, the evaluator was not invoked, or configuration validation failed before evidence evaluation."
+      },
+      "evidence_refs": [
+        "CLAUDE-06#EVIDENCE-MODEL",
+        "requirements-traceability.csv",
+        "interface-contract.md",
+        "open-decisions.md"
+      ],
+      "exceptions": [],
+      "test_ids": ["TC-EVIDENCE-001-POS-01", "TC-EVIDENCE-001-NEG-01", "TC-EVIDENCE-001-MISS-01"]
+    }
+  ]
+}

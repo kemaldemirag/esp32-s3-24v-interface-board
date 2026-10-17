@@ -1,0 +1,1020 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:rep-01:wf01-d1:configuration-schema:1.0.0-draft",
+  "title": "ESP32-S3 Interface Architecture Decision Workbench Configuration",
+  "description": "Evidence-linked REP-01 configuration contract. Unknown customer values are explicit and never receive numeric or Boolean defaults.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "configuration_id",
+    "target",
+    "usb",
+    "debug",
+    "efuse",
+    "gpio",
+    "serial",
+    "tft",
+    "power_input",
+    "evidence_catalog",
+    "evaluation_policy"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0-draft"
+    },
+    "configuration_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9._-]{2,63}$"
+    },
+    "description": {
+      "type": ["string", "null"]
+    },
+    "target": {
+      "$ref": "#/$defs/targetConfiguration"
+    },
+    "usb": {
+      "$ref": "#/$defs/usbConfiguration"
+    },
+    "debug": {
+      "$ref": "#/$defs/debugConfiguration"
+    },
+    "efuse": {
+      "$ref": "#/$defs/efuseConfiguration"
+    },
+    "gpio": {
+      "$ref": "#/$defs/gpioConfiguration"
+    },
+    "serial": {
+      "$ref": "#/$defs/serialConfiguration"
+    },
+    "tft": {
+      "$ref": "#/$defs/tftConfiguration"
+    },
+    "power_input": {
+      "$ref": "#/$defs/powerInputConfiguration"
+    },
+    "evidence_catalog": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidenceRecord"
+      },
+      "minItems": 1
+    },
+    "evaluation_policy": {
+      "$ref": "#/$defs/evaluationPolicy"
+    }
+  },
+  "$defs": {
+    "evidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "evidencedString": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "value", "evidence_refs"],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/valueState"
+        },
+        "value": {
+          "type": ["string", "null"]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        },
+        "reason": {
+          "type": ["string", "null"]
+        },
+        "next_action": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedValueStateRules"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidencedBoolean": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "value", "evidence_refs"],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/valueState"
+        },
+        "value": {
+          "type": ["boolean", "null"]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        },
+        "reason": {
+          "type": ["string", "null"]
+        },
+        "next_action": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedValueStateRules"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidencedInteger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "value", "evidence_refs"],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/valueState"
+        },
+        "value": {
+          "type": ["integer", "null"]
+        },
+        "unit": {
+          "type": ["string", "null"]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        },
+        "reason": {
+          "type": ["string", "null"]
+        },
+        "next_action": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedValueStateRules"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidencedNumber": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "value", "evidence_refs"],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/valueState"
+        },
+        "value": {
+          "type": ["number", "null"]
+        },
+        "unit": {
+          "type": ["string", "null"]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        },
+        "reason": {
+          "type": ["string", "null"]
+        },
+        "next_action": {
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedValueStateRules"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "valueState": {
+      "type": "string",
+      "enum": ["KNOWN", "UNKNOWN", "NOT_APPLICABLE", "CONFLICT"]
+    },
+    "evidencedValueStateRules": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": ["UNKNOWN", "CONFLICT"]
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["reason", "next_action"],
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "next_action": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "NOT_APPLICABLE"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidencedEnumMcuFamily": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedString"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "enum": ["ESP32-S3"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidencedEnumUsbRole": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedString"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "enum": ["HOST", "DEVICE", "OTG", "DISABLED"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidencedEnumUsbPhy": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedString"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "enum": ["INTERNAL", "EXTERNAL", "NONE"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidencedEnumDirection": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/evidencedString"
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "enum": ["INPUT", "OUTPUT", "BIDIRECTIONAL", "ANALOG"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "targetConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mcu_family", "module_variant", "silicon_revision", "psram_present", "module_profile_ref"],
+      "properties": {
+        "mcu_family": {
+          "$ref": "#/$defs/evidencedEnumMcuFamily"
+        },
+        "module_variant": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "silicon_revision": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "psram_present": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "module_profile_ref": {
+          "$ref": "#/$defs/evidencedString"
+        }
+      },
+      "x-default-policy": "No MCU, module, silicon, or memory default. N8-specific rules apply only to an evidenced N8 profile."
+    },
+    "usbConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "phy",
+        "data_minus_gpio",
+        "data_plus_gpio",
+        "simultaneous_usb_serial_jtag_required",
+        "boot_role",
+        "vbus_source_enabled",
+        "vbus_current_limit_ma"
+      ],
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/evidencedEnumUsbRole"
+        },
+        "phy": {
+          "$ref": "#/$defs/evidencedEnumUsbPhy"
+        },
+        "data_minus_gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "data_plus_gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "simultaneous_usb_serial_jtag_required": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "boot_role": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "vbus_source_enabled": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "vbus_current_limit_ma": {
+          "$ref": "#/$defs/evidencedNumber"
+        }
+      },
+      "x-default-policy": "No USB role, PHY, pin, or VBUS current default."
+    },
+    "debugConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "programming_log_transports",
+        "jtag_policy",
+        "live_debug_while_usb_host",
+        "pad_jtag_gpios",
+        "uart0_controller_id",
+        "uart0_tx_gpio",
+        "uart0_rx_gpio",
+        "uart0_recovery_required"
+      ],
+      "properties": {
+        "programming_log_transports": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["UART0", "USB_SERIAL_JTAG", "PAD_JTAG", "OTHER"]
+          },
+          "uniqueItems": true
+        },
+        "jtag_policy": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "live_debug_while_usb_host": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "pad_jtag_gpios": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidencedInteger"
+          },
+          "maxItems": 4
+        },
+        "uart0_controller_id": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "uart0_tx_gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "uart0_rx_gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "uart0_recovery_required": {
+          "$ref": "#/$defs/evidencedBoolean"
+        }
+      },
+      "x-default-policy": "UNDECIDED is an explicit evidenced value, not an omitted or implicit JTAG policy."
+    },
+    "efuseConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["usb_phy_sel_strategy", "gpio35_37_availability_verified", "irreversible_change_approval_ref"],
+      "properties": {
+        "usb_phy_sel_strategy": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/evidencedString"
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "KNOWN"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "enum": ["DO_NOT_BURN", "BURN_FOR_OTG", "PROVISION_LATER"]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "gpio35_37_availability_verified": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "irreversible_change_approval_ref": {
+          "$ref": "#/$defs/evidencedString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "usb_phy_sel_strategy": {
+                "properties": {
+                  "state": {
+                    "const": "KNOWN"
+                  },
+                  "value": {
+                    "const": "BURN_FOR_OTG"
+                  }
+                },
+                "required": ["state", "value"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "irreversible_change_approval_ref": {
+                "properties": {
+                  "state": {
+                    "const": "KNOWN"
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "x-default-policy": "The contract has no implicit burn or preserve decision. The current research recommendation is not a schema default."
+    },
+    "gpioReservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reservation_id", "gpio", "purpose", "owner", "policy", "evidence_refs"],
+      "properties": {
+        "reservation_id": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9._-]{2,63}$"
+        },
+        "gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "purpose": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy": {
+          "type": "string",
+          "enum": ["RESERVED", "CONDITIONAL", "AVAILABLE", "FORBIDDEN"]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        }
+      }
+    },
+    "gpioAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assignment_id", "gpio", "signal", "direction", "sharing_group", "evidence_refs"],
+      "properties": {
+        "assignment_id": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9._-]{2,63}$"
+        },
+        "gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "signal": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "direction": {
+          "$ref": "#/$defs/evidencedEnumDirection"
+        },
+        "sharing_group": {
+          "type": ["string", "null"]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        }
+      }
+    },
+    "gpioBootBehavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gpio", "drive_at_boot", "external_bias", "evidence_refs"],
+      "properties": {
+        "gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "drive_at_boot": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "external_bias": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        }
+      }
+    },
+    "gpioConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_profile_ref", "available_gpio_count", "reservations", "assignments", "boot_behaviors"],
+      "properties": {
+        "capability_profile_ref": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "available_gpio_count": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "reservations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gpioReservation"
+          }
+        },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gpioAssignment"
+          }
+        },
+        "boot_behaviors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gpioBootBehavior"
+          }
+        }
+      },
+      "x-cross-reference-validation": [
+        "reservation_id and assignment_id are unique",
+        "KNOWN GPIO numbers are in the evidenced module capability profile",
+        "duplicate use without the same non-null sharing_group is evaluated as a conflict"
+      ],
+      "x-default-policy": "Empty arrays mean explicitly no records were supplied; they do not prove that the hardware has no restrictions."
+    },
+    "serializerResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource_id", "kind", "lifecycle", "independent_tx_capacity", "evidence_refs"],
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9._-]{2,63}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["NATIVE_UART", "RMT", "SOFTWARE_UART", "EXTERNAL_BRIDGE", "HELPER_MCU", "OTHER"]
+        },
+        "lifecycle": {
+          "type": "string",
+          "enum": ["VALIDATED", "RESEARCH_ONLY", "PLANNED", "REJECTED"]
+        },
+        "independent_tx_capacity": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        }
+      }
+    },
+    "serialConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "topology",
+        "requested_ttl_tx_channels",
+        "requested_rs232_tx_channels",
+        "independent_tx_streams",
+        "native_uart_total",
+        "reserved_uart_controllers",
+        "alternative_serializer_resources"
+      ],
+      "properties": {
+        "topology": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "requested_ttl_tx_channels": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "requested_rs232_tx_channels": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "independent_tx_streams": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "native_uart_total": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "reserved_uart_controllers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "alternative_serializer_resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/serializerResource"
+          }
+        }
+      },
+      "x-capacity-policy": "Only KNOWN capacities whose lifecycle is VALIDATED contribute to PASS. RESEARCH_ONLY RMT or software-UART options do not count as verified capacity.",
+      "x-default-policy": "No channel count, independence, baud, concurrency, or alternative capacity default."
+    },
+    "tftSignal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signal_id", "gpio", "required", "evidence_refs"],
+      "properties": {
+        "signal_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gpio": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "required": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidenceRefs"
+        }
+      }
+    },
+    "tftConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provisioning", "interface", "signals", "dedicated_gpio_count", "touch_required", "psram_required", "decision_ref"],
+      "properties": {
+        "provisioning": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "interface": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tftSignal"
+          }
+        },
+        "dedicated_gpio_count": {
+          "$ref": "#/$defs/evidencedInteger"
+        },
+        "touch_required": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "psram_required": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "decision_ref": {
+          "$ref": "#/$defs/evidencedString"
+        }
+      },
+      "x-cross-reference-validation": [
+        "If provisioning is PRESENT or DNP_FUTURE, the interface and dedicated pin demand must be known before RULE-TFT-001 can PASS",
+        "A KNOWN dedicated_gpio_count is checked against unique required TFT signals"
+      ],
+      "x-default-policy": "DNP does not imply SPI and does not create a pin count. Q-C11 remains an explicit decision dependency."
+    },
+    "powerInputConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain",
+        "nominal_voltage_v",
+        "continuous_min_v",
+        "continuous_max_v",
+        "central_suppression_present",
+        "transient_profile_ref",
+        "jump_start_profile_ref",
+        "reverse_polarity_profile_ref",
+        "functional_policy"
+      ],
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "nominal_voltage_v": {
+          "$ref": "#/$defs/evidencedNumber"
+        },
+        "continuous_min_v": {
+          "$ref": "#/$defs/evidencedNumber"
+        },
+        "continuous_max_v": {
+          "$ref": "#/$defs/evidencedNumber"
+        },
+        "central_suppression_present": {
+          "$ref": "#/$defs/evidencedBoolean"
+        },
+        "transient_profile_ref": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "jump_start_profile_ref": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "reverse_polarity_profile_ref": {
+          "$ref": "#/$defs/evidencedString"
+        },
+        "functional_policy": {
+          "$ref": "#/$defs/evidencedString"
+        }
+      },
+      "x-cross-reference-validation": [
+        "When minimum, nominal, and maximum voltages are all KNOWN, minimum <= nominal <= maximum",
+        "Power-rail adequacy, derating, stability, sequencing, and thermal assessment are delegated to REP-02"
+      ],
+      "x-default-policy": "No voltage, transient, current, timing, or functional-class value is inferred."
+    },
+    "evidenceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "evidence_class",
+        "source_path",
+        "locator",
+        "claim_ids",
+        "integrity_state",
+        "sha256",
+        "upstream_refs",
+        "supported_inputs",
+        "supported_rules"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:#/-]{1,127}$"
+        },
+        "evidence_class": {
+          "type": "string",
+          "enum": [
+            "SOURCE_EXPLICIT",
+            "DERIVED",
+            "ENGINEERING_RULE",
+            "SECONDARY_SOURCE",
+            "HANDOFF_ONLY",
+            "INTERNAL_RULE",
+            "ASSUMPTION",
+            "UNKNOWN",
+            "CONFLICT"
+          ]
+        },
+        "source_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locator": {
+          "type": ["string", "null"]
+        },
+        "claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "integrity_state": {
+          "type": "string",
+          "enum": ["LOCAL_HASH_VERIFIED", "CONTENT_READ_HASH_UNVERIFIED", "MISSING", "CONFLICT"]
+        },
+        "sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "upstream_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "supported_inputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "uniqueItems": true
+        },
+        "supported_rules": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^RULE-[A-Z]+-[0-9]{3}$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "evaluationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing_value_policy", "pass_scope", "deterministic", "registry_version", "selected_scenarios"],
+      "properties": {
+        "missing_value_policy": {
+          "type": "string",
+          "const": "DO_NOT_INFER"
+        },
+        "pass_scope": {
+          "type": "string",
+          "const": "RULE_ONLY"
+        },
+        "deterministic": {
+          "type": "boolean",
+          "const": true
+        },
+        "registry_version": {
+          "type": "string",
+          "const": "1.0.0-draft"
+        },
+        "selected_scenarios": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^SCN-[A-Z0-9]+-[0-9]{3}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "x-validator-requirements": [
+    "All evidence_refs resolve to a unique evidence_catalog.evidence_id",
+    "All reservation, assignment, serializer resource, and evidence identifiers are unique in their namespace",
+    "Known GPIO values are legal for the evidenced module profile",
+    "Selected scenario identifiers resolve to the versioned scenario matrix",
+    "Unknown operators or extension fields are rejected",
+    "No missing customer value is replaced with a numeric, Boolean, pin, threshold, current, timing, or part-number default"
+  ]
+}
