@@ -19,6 +19,7 @@ Desktop.ini
 build/
 dist/
 out/
+*.xlsx.inspect.ndjson
 __pycache__/
 .pytest_cache/
 *.py[cod]
