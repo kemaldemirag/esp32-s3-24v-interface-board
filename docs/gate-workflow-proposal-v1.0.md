@@ -1,7 +1,9 @@
 # WF01 G0–G6 Gate Workflow Proposal
 
-**Version:** 1.0.0-proposal  
-**Date:** 2026-10-21  
+**Version:** 1.0.0-proposal
+
+**Date:** 2026-10-21
+
 **Status:** Recommendation for human review; not an approved project policy or gate decision.
 
 ## 1. Purpose and current baseline
