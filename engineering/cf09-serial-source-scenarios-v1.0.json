@@ -1,0 +1,219 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_set_id": "CF09-SERIAL-SOURCE-A-D-V1.0",
+  "architecture_ref": "docs/cf09-serial-architecture-v1.2.md",
+  "comparison_ref": "docs/serial-source-comparison.md",
+  "status": "PROPOSED",
+  "evidence_class": "DERIVED",
+  "source_role": "REFERENCE_CANDIDATE",
+  "decision_scope": "PORTFOLIO",
+  "decision_state": "PROPOSED",
+  "verification_status": "NOT_RUN",
+  "claim_boundary": [
+    "MIRRORED_5_SOURCE_CLASS_COMPARISON_ONLY",
+    "NO_EXACT_PART_SELECTION",
+    "NO_ESP_IDF_DRIVER_QUALIFICATION",
+    "NO_HARDWARE_CAPACITY_PASS",
+    "NO_POWER_OFF_BACKFEED_PASS"
+  ],
+  "static_model_assumptions": {
+    "frame_bits": 10,
+    "duty_numerator": 1,
+    "duty_denominator": 1,
+    "host_bits_per_uart_entry": 16,
+    "guard_numerator": 5,
+    "guard_denominator": 4,
+    "planning_limit_numerator": 7,
+    "planning_limit_denominator": 10,
+    "scope": "TX_ONLY_EXCLUDES_RX_STATUS_IRQ_RETRY_FAULT_AND_PROTOCOL_OVERHEAD"
+  },
+  "reference_candidates": {
+    "MAX14830": {
+      "manufacturer": "Analog Devices",
+      "uart_channels": 4,
+      "fifo_entries_per_direction_per_uart": 128,
+      "fifo_unit": "WORD",
+      "spi_max_hz": 26000000,
+      "i2c_max_hz": 1000000,
+      "uart_rate": {
+        "sampling_16x_max_baud": 6000000,
+        "sampling_2x_4x_max_baud": 24000000
+      },
+      "source_url": "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX14830.pdf",
+      "source_revision": "Rev. 7",
+      "source_locator": "s.1; s.8-10; s.15-17; s.27; s.39; s.58-59",
+      "evidence_class": "SOURCE_EXPLICIT",
+      "power_off_backfeed": "UNKNOWN"
+    },
+    "MAX3109": {
+      "manufacturer": "Analog Devices",
+      "uart_channels": 2,
+      "fifo_entries_per_direction_per_uart": 128,
+      "fifo_unit": "WORD",
+      "spi_max_hz": 26000000,
+      "i2c_max_hz": 1000000,
+      "uart_rate": {"max_baud": 24000000},
+      "source_url": "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX3109.pdf",
+      "source_revision": "Rev. 6",
+      "source_locator": "s.1; s.7-9; s.14-15; s.27",
+      "evidence_class": "SOURCE_EXPLICIT",
+      "power_off_backfeed": "UNKNOWN"
+    },
+    "SC16IS762": {
+      "manufacturer": "NXP Semiconductors",
+      "uart_channels": 2,
+      "fifo_entries_per_direction_per_uart": 64,
+      "fifo_unit": "BYTE",
+      "spi_max_hz": 15000000,
+      "i2c_max_hz": 400000,
+      "uart_rate": {"max_baud": 5000000},
+      "source_url": "https://www.nxp.com/docs/en/data-sheet/SC16IS752_SC16IS762.pdf",
+      "source_revision": "Rev. 9.1 / 5 February 2025",
+      "source_locator": "s.1-2; s.7; s.12-13; s.39-40",
+      "evidence_class": "SOURCE_EXPLICIT",
+      "power_off_backfeed": "CONFLICT_UNKNOWN"
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "A_2_UART_PLUS_QUAD",
+      "architecture": "2 local UART + 1 quad UART bridge",
+      "reference_candidates": ["MAX14830"],
+      "local_tx_sources": 2,
+      "local_uart_resources": ["UART1", "UART2"],
+      "external_devices": [{"device_id": "BRIDGE_A", "uart_channels": 4}],
+      "external_uart_channels": 4,
+      "external_tx_channels_in_mirrored_5": 3,
+      "rx_policy": "FOURTH_EXTERNAL_UART_CHANNEL_DEDICATED_TO_RX",
+      "mirrored_5_coverage": "ARITHMETICALLY_COMPLETE",
+      "independent_10_coverage": "INSUFFICIENT",
+      "uart0_reserved": true,
+      "scenario_status": "PROPOSED",
+      "blockers": [
+        "EXACT_PART_NOT_SELECTED",
+        "ESP_IDF_DRIVER_NOT_QUALIFIED",
+        "POWER_OFF_BACKFEED_UNKNOWN",
+        "SPI_IRQ_RESET_BENCH_NOT_RUN"
+      ]
+    },
+    {
+      "scenario_id": "B_3_UART_PLUS_DUAL",
+      "architecture": "3 local UART + 1 dual UART bridge",
+      "reference_candidates": ["MAX3109", "SC16IS762"],
+      "local_tx_sources": 3,
+      "local_uart_resources": ["UART0", "UART1", "UART2"],
+      "external_devices": [{"device_id": "BRIDGE_A", "uart_channels": 2}],
+      "external_uart_channels": 2,
+      "external_tx_channels_in_mirrored_5": 2,
+      "rx_policy": "RX_DIRECTION_SHARES_A_UART_CONFIGURATION_UNLESS_SEPARATELY_PROVEN",
+      "mirrored_5_coverage": "ARITHMETICALLY_COMPLETE",
+      "independent_10_coverage": "INSUFFICIENT",
+      "uart0_reserved": false,
+      "scenario_status": "BLOCKED",
+      "blockers": [
+        "Q_UART0_CONFLICT_WITH_PROGRAMMING_RECOVERY_LOG",
+        "RX_RELATION_AND_CONFIGURATION_UNKNOWN",
+        "EXACT_PART_NOT_SELECTED",
+        "ESP_IDF_DRIVER_NOT_QUALIFIED",
+        "POWER_OFF_BACKFEED_UNKNOWN"
+      ]
+    },
+    {
+      "scenario_id": "C_HELPER_MCU",
+      "architecture": "helper MCU or FPGA serializer",
+      "reference_candidates": [],
+      "local_tx_sources": "UNKNOWN",
+      "local_uart_resources": [],
+      "external_devices": [],
+      "external_uart_channels": "UNKNOWN",
+      "external_tx_channels_in_mirrored_5": "UNKNOWN",
+      "rx_policy": "UNKNOWN",
+      "mirrored_5_coverage": "UNKNOWN",
+      "independent_10_coverage": "UNKNOWN",
+      "uart0_reserved": true,
+      "scenario_status": "UNKNOWN",
+      "blockers": [
+        "EXACT_HELPER_NOT_SELECTED",
+        "HOST_IPC_NOT_DEFINED",
+        "SECOND_FIRMWARE_WATCHDOG_UPDATE_AND_RECOVERY_NOT_DEFINED",
+        "CAPACITY_AND_FAULT_BENCH_NOT_RUN"
+      ]
+    },
+    {
+      "scenario_id": "D_2_UART_PLUS_TWO_DUAL",
+      "architecture": "2 local UART + 2 dual UART bridges",
+      "reference_candidates": ["MAX3109", "SC16IS762"],
+      "local_tx_sources": 2,
+      "local_uart_resources": ["UART1", "UART2"],
+      "external_devices": [
+        {"device_id": "BRIDGE_A", "uart_channels": 2},
+        {"device_id": "BRIDGE_B", "uart_channels": 2}
+      ],
+      "external_uart_channels": 4,
+      "external_tx_channels_in_mirrored_5": 3,
+      "rx_policy": "ONE_EXTERNAL_UART_CHANNEL_DEDICATED_TO_RX",
+      "mirrored_5_coverage": "ARITHMETICALLY_COMPLETE",
+      "independent_10_coverage": "INSUFFICIENT",
+      "uart0_reserved": true,
+      "scenario_status": "PROPOSED",
+      "blockers": [
+        "EXACT_PART_NOT_SELECTED",
+        "TWO_DEVICE_CS_IRQ_RESET_POLICY_NOT_PROVEN",
+        "ESP_IDF_DRIVER_NOT_QUALIFIED",
+        "POWER_OFF_BACKFEED_UNKNOWN",
+        "CROSS_BRIDGE_FAULT_RECOVERY_BENCH_NOT_RUN"
+      ]
+    }
+  ],
+  "sensitivity_rows": [
+    {"row_id": "A_MAX14830_115200", "scenario_id": "A_2_UART_PLUS_QUAD", "candidate": "MAX14830", "external_tx_channels": 3, "uart_baud": 115200, "host_bus_bps": 26000000, "fifo_entries": 128, "required_bus_bps": 691200, "utilization_percent": "2.658462", "fifo_full_time_us": "11111.111111", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "A_MAX14830_1000000", "scenario_id": "A_2_UART_PLUS_QUAD", "candidate": "MAX14830", "external_tx_channels": 3, "uart_baud": 1000000, "host_bus_bps": 26000000, "fifo_entries": 128, "required_bus_bps": 6000000, "utilization_percent": "23.076923", "fifo_full_time_us": "1280.000000", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "B_MAX3109_115200", "scenario_id": "B_3_UART_PLUS_DUAL", "candidate": "MAX3109", "external_tx_channels": 2, "uart_baud": 115200, "host_bus_bps": 26000000, "fifo_entries": 128, "required_bus_bps": 460800, "utilization_percent": "1.772308", "fifo_full_time_us": "11111.111111", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "B_MAX3109_1000000", "scenario_id": "B_3_UART_PLUS_DUAL", "candidate": "MAX3109", "external_tx_channels": 2, "uart_baud": 1000000, "host_bus_bps": 26000000, "fifo_entries": 128, "required_bus_bps": 4000000, "utilization_percent": "15.384615", "fifo_full_time_us": "1280.000000", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "B_SC16IS762_115200", "scenario_id": "B_3_UART_PLUS_DUAL", "candidate": "SC16IS762", "external_tx_channels": 2, "uart_baud": 115200, "host_bus_bps": 15000000, "fifo_entries": 64, "required_bus_bps": 460800, "utilization_percent": "3.072000", "fifo_full_time_us": "5555.555556", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "B_SC16IS762_1000000", "scenario_id": "B_3_UART_PLUS_DUAL", "candidate": "SC16IS762", "external_tx_channels": 2, "uart_baud": 1000000, "host_bus_bps": 15000000, "fifo_entries": 64, "required_bus_bps": 4000000, "utilization_percent": "26.666667", "fifo_full_time_us": "640.000000", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "D_MAX3109_X2_115200", "scenario_id": "D_2_UART_PLUS_TWO_DUAL", "candidate": "MAX3109", "external_tx_channels": 3, "uart_baud": 115200, "host_bus_bps": 26000000, "fifo_entries": 128, "required_bus_bps": 691200, "utilization_percent": "2.658462", "fifo_full_time_us": "11111.111111", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "D_MAX3109_X2_1000000", "scenario_id": "D_2_UART_PLUS_TWO_DUAL", "candidate": "MAX3109", "external_tx_channels": 3, "uart_baud": 1000000, "host_bus_bps": 26000000, "fifo_entries": 128, "required_bus_bps": 6000000, "utilization_percent": "23.076923", "fifo_full_time_us": "1280.000000", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "D_SC16IS762_X2_115200", "scenario_id": "D_2_UART_PLUS_TWO_DUAL", "candidate": "SC16IS762", "external_tx_channels": 3, "uart_baud": 115200, "host_bus_bps": 15000000, "fifo_entries": 64, "required_bus_bps": 691200, "utilization_percent": "4.608000", "fifo_full_time_us": "5555.555556", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"},
+    {"row_id": "D_SC16IS762_X2_1000000", "scenario_id": "D_2_UART_PLUS_TWO_DUAL", "candidate": "SC16IS762", "external_tx_channels": 3, "uart_baud": 1000000, "host_bus_bps": 15000000, "fifo_entries": 64, "required_bus_bps": 6000000, "utilization_percent": "40.000000", "fifo_full_time_us": "640.000000", "screen_verdict": "SCREEN_CANDIDATE_NOT_CAPACITY_PASS"}
+  ],
+  "independent_10_boundary": "A_B_D_DO_NOT_COVER_INDEPENDENT_10; CURRENT_HYB_REV10_TWO_QUAD_OR_ANOTHER_SERIALIZER_CLASS_IS_REQUIRED",
+  "helper_mcu_sensitivity": "NOT_RUN_NO_EXACT_HELPER_OR_HOST_LINK",
+  "driver_ecosystem": {
+    "esp_idf": {
+      "revision": "d35ea023029363d97c42565f85e0db23486f26b2",
+      "external_bridge_driver_status": "NO_IN_TREE_SC16IS7XX_MAX3109_OR_MAX14830_DRIVER_FOUND",
+      "soft_uart_status": "REFERENCE_ONLY_8N1_INTERRUPTS_AND_WATCHDOG_CONSTRAINTS_CAPACITY_CREDIT_ZERO",
+      "source_url": "https://github.com/espressif/esp-idf/blob/d35ea023029363d97c42565f85e0db23486f26b2/components/esp_driver_uart/CMakeLists.txt#L24-L44"
+    },
+    "sc16is750_esp_idf_prototype": {
+      "repository": "nopnop2002/esp-idf-sc16is750",
+      "revision": "27bb453859722129f0057f14cb359799e37c049d",
+      "license": "MIT",
+      "status": "REFERENCE_DESIGN_PROTOTYPE_SCAFFOLD_ONLY",
+      "limitations": [
+        "NOT_OFFICIAL_ESPRESSIF_DRIVER",
+        "SYNCHRONOUS_REGISTER_OPERATIONS",
+        "SPI_BUS_INITIALIZED_PER_DEVICE_IN_REFERENCE_CODE",
+        "REFERENCE_CONFIGURES_SPI_AT_1MHZ",
+        "NO_TWO_BRIDGE_SCHEDULER_OR_FAULT_RECOVERY_PROOF"
+      ],
+      "source_url": "https://github.com/nopnop2002/esp-idf-sc16is750/tree/27bb453859722129f0057f14cb359799e37c049d"
+    },
+    "linux_behavior_references": {
+      "revision": "d135ab453a7400a34930bdda1ef4bdc8acfac80e",
+      "license": "GPL-2.0+",
+      "status": "SECONDARY_SOURCE_BEHAVIOR_REFERENCE_NOT_COPY_SOURCE",
+      "max310x_url": "https://github.com/torvalds/linux/blob/d135ab453a7400a34930bdda1ef4bdc8acfac80e/drivers/tty/serial/max310x.c",
+      "sc16is7xx_url": "https://github.com/torvalds/linux/blob/d135ab453a7400a34930bdda1ef4bdc8acfac80e/drivers/tty/serial/sc16is7xx.c"
+    },
+    "helper_mcu_references": {
+      "ch32v307_revision": "8b3699d9e4eafc3102e382b74266a1165a2bb584",
+      "ch32v307_uart_count": 8,
+      "ch32v307_independent_10_coverage": "INSUFFICIENT",
+      "ch32v307_license_status": "RESTRICTED_OR_UNCLEAR_FOR_REUSE_OUTSIDE_WCH_MCU",
+      "esp_hosted_revision": "a0422923d01fa5cd5f4987885fe743656398b7c5",
+      "esp_hosted_status": "HOST_COPROCESSOR_PROTOCOL_REFERENCE_NOT_MULTI_UART_IMPLEMENTATION"
+    }
+  }
+}

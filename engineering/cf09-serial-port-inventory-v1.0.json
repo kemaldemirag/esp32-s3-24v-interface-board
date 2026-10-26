@@ -1,0 +1,178 @@
+{
+  "schema_version": "1.0.0",
+  "inventory_id": "CF09-SERIAL-PORT-INVENTORY-V1.0",
+  "architecture_ref": "docs/cf09-serial-architecture-v1.2.md",
+  "status": "PROVISIONAL_ASSUMPTION_DRIVEN",
+  "claim_boundary": [
+    "PORT_AND_ROUTE_INVENTORY_ONLY",
+    "NO_EXACT_PART_SELECTION",
+    "NO_PIN_FREEZE",
+    "NO_ELECTRICAL_PASS",
+    "NO_HARDWARE_VALIDATION"
+  ],
+  "external_port_count": 11,
+  "external_ports": [
+    {
+      "port_id": "TTL0",
+      "direction": "TX",
+      "electrical_class": "5V_TTL_REQUESTED_LEVELS_UNKNOWN",
+      "mirrored_5": {"logical_channel": 0, "serializer": "S0", "resource": "UART1"},
+      "independent_10": {"logical_channel": 0, "serializer": "S0", "resource": "UART1"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "TTL1",
+      "direction": "TX",
+      "electrical_class": "5V_TTL_REQUESTED_LEVELS_UNKNOWN",
+      "mirrored_5": {"logical_channel": 1, "serializer": "S1", "resource": "UART2"},
+      "independent_10": {"logical_channel": 1, "serializer": "S1", "resource": "UART2"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "TTL2",
+      "direction": "TX",
+      "electrical_class": "5V_TTL_REQUESTED_LEVELS_UNKNOWN",
+      "mirrored_5": {"logical_channel": 2, "serializer": "S2", "resource": "BRIDGE_A_CH0"},
+      "independent_10": {"logical_channel": 2, "serializer": "S2", "resource": "BRIDGE_A_CH0"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "TTL3",
+      "direction": "TX",
+      "electrical_class": "5V_TTL_REQUESTED_LEVELS_UNKNOWN",
+      "mirrored_5": {"logical_channel": 3, "serializer": "S3", "resource": "BRIDGE_A_CH1"},
+      "independent_10": {"logical_channel": 3, "serializer": "S3", "resource": "BRIDGE_A_CH1"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "TTL4",
+      "direction": "TX",
+      "electrical_class": "5V_TTL_REQUESTED_LEVELS_UNKNOWN",
+      "mirrored_5": {"logical_channel": 4, "serializer": "S4", "resource": "BRIDGE_A_CH2"},
+      "independent_10": {"logical_channel": 4, "serializer": "S4", "resource": "BRIDGE_A_CH2"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "RS2320",
+      "direction": "TX",
+      "electrical_class": "RS232",
+      "mirrored_5": {"logical_channel": 0, "serializer": "S0", "resource": "UART1"},
+      "independent_10": {"logical_channel": 5, "serializer": "S5", "resource": "BRIDGE_A_CH3"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "RS2321",
+      "direction": "TX",
+      "electrical_class": "RS232",
+      "mirrored_5": {"logical_channel": 1, "serializer": "S1", "resource": "UART2"},
+      "independent_10": {"logical_channel": 6, "serializer": "S6", "resource": "BRIDGE_B_CH0"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "RS2322",
+      "direction": "TX",
+      "electrical_class": "RS232",
+      "mirrored_5": {"logical_channel": 2, "serializer": "S2", "resource": "BRIDGE_A_CH0"},
+      "independent_10": {"logical_channel": 7, "serializer": "S7", "resource": "BRIDGE_B_CH1"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "RS2323",
+      "direction": "TX",
+      "electrical_class": "RS232",
+      "mirrored_5": {"logical_channel": 3, "serializer": "S3", "resource": "BRIDGE_A_CH1"},
+      "independent_10": {"logical_channel": 8, "serializer": "S8", "resource": "BRIDGE_B_CH2"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "RS2324",
+      "direction": "TX",
+      "electrical_class": "RS232",
+      "mirrored_5": {"logical_channel": 4, "serializer": "S4", "resource": "BRIDGE_A_CH2"},
+      "independent_10": {"logical_channel": 9, "serializer": "S9", "resource": "BRIDGE_B_CH3"},
+      "exact_driver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    },
+    {
+      "port_id": "RX0",
+      "direction": "RX",
+      "electrical_class": "UNKNOWN",
+      "mirrored_5": {
+        "logical_channel": "UNKNOWN",
+        "serializer": "BRIDGE_A_FREE_RX_DIRECTION",
+        "resource": "CONDITIONAL"
+      },
+      "independent_10": {
+        "logical_channel": "UNKNOWN",
+        "serializer": "S5_RX_OR_DEDICATED_RX",
+        "resource": "CONDITIONAL"
+      },
+      "exact_receiver": "UNKNOWN",
+      "connector_pinout": "UNKNOWN"
+    }
+  ],
+  "topology_invariants": {
+    "mirrored_5": {
+      "logical_tx_count": 5,
+      "physical_tx_count": 10,
+      "rule": "TTL_i_AND_RS232_i_SHARE_Li_AND_Si",
+      "global_1_to_10_fanout": "NOT_SELECTED"
+    },
+    "independent_10": {
+      "logical_tx_count": 10,
+      "physical_tx_count": 10,
+      "rule": "TTL_i_USES_Li_AND_RS232_i_USES_L5_PLUS_i"
+    },
+    "hybrid": {
+      "logical_tx_count_range": [5, 10],
+      "independent_pair_indices": [0, 1, 2, 3, 4],
+      "selection_method": "DNP_OR_0_OHM_ASSEMBLY_OPTION",
+      "runtime_source_contention": "PHYSICALLY_PROHIBITED"
+    }
+  },
+  "resource_policy": {
+    "uart0": {
+      "gpio": [43, 44],
+      "purpose": "PROGRAMMING_RECOVERY_LOG",
+      "cf09_capacity_credit": 0
+    },
+    "usb_differential": {
+      "gpio": [19, 20],
+      "purpose": "USB_D_MINUS_D_PLUS",
+      "cf09_capacity_credit": 0
+    },
+    "boot_constrained_gpio": [3, 45],
+    "conditional_pad_jtag_gpio": [39, 40, 41, 42],
+    "rmt_tx_capacity_credit": 0,
+    "local_product_uart_tx_count": 2,
+    "host_bus_preference": "SPI_PROVISIONAL"
+  },
+  "boot_idle_fault_policy": {
+    "ttl_bank_default": "SAFE_DISABLED",
+    "rs232_bank_default": "SAFE_DISABLED",
+    "gpio_hi_z_is_safe_idle": false,
+    "serializer_complete_is_distinct_from_host_accept": true,
+    "automatic_retry_after_unknown_commit": false,
+    "power_off_backfeed": "UNKNOWN_EXACT_PART_REQUIRED"
+  },
+  "unresolved": [
+    "Q-C12_BAUD_FRAMING_CONCURRENCY_BURST_LATENCY_JITTER",
+    "Q-C13_RX_STANDARD_RELATION_FLOW_CONTROL_DTE_DCE_PINOUT",
+    "Q-C14_5V_TTL_LEVEL_LOAD_CABLE_GROUND_ISOLATION",
+    "Q-C15_BOOT_IDLE_DISABLE_FAULT_RECOVERY_LIMITS",
+    "EXACT_UART_BRIDGE",
+    "EXACT_TTL_DRIVER",
+    "EXACT_RS232_DRIVER",
+    "FINAL_GPIO_ASSIGNMENT",
+    "POWER_OFF_BACKFEED_VALIDATION"
+  ]
+}
