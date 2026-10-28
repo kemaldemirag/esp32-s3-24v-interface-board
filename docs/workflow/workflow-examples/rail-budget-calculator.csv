@@ -1,0 +1,7 @@
+"row_id","rail","consumer","quantity","steady_current_A_each","peak_current_A_each","design_margin_fraction","required_current_A","evidence_ref","status","verified_rail_capacity_A","remaining_capacity_A"
+"LOAD-5V-USB","5V","USB-A VBUS device","","","","","=IF(OR(D2="""",E2="""",F2="""",G2=""""),"""",D2*MAX(E2,F2)*(1+G2))","","UNKNOWN","",""
+"LOAD-5V-OTHER","5V","Other evidenced 5 V loads","","","","","=IF(OR(D3="""",E3="""",F3="""",G3=""""),"""",D3*MAX(E3,F3)*(1+G3))","","UNKNOWN","",""
+"TOTAL-5V","5V","5 V rail total","","","","","=IF(COUNT(H2:H3)=0,"""",SUM(H2:H3))","","BLOCKED","","=IF(OR(H4="""",K4=""""),"""",K4-H4)"
+"LOAD-3V3-MCU","3V3","ESP32-S3 module (use applicable peak profile)","","","","","=IF(OR(D5="""",E5="""",F5="""",G5=""""),"""",D5*MAX(E5,F5)*(1+G5))","","UNKNOWN","",""
+"LOAD-3V3-OTHER","3V3","Other evidenced 3.3 V loads","","","","","=IF(OR(D6="""",E6="""",F6="""",G6=""""),"""",D6*MAX(E6,F6)*(1+G6))","","UNKNOWN","",""
+"TOTAL-3V3","3V3","3.3 V rail total","","","","","=IF(COUNT(H5:H6)=0,"""",SUM(H5:H6))","","BLOCKED","","=IF(OR(H7="""",K7=""""),"""",K7-H7)"
